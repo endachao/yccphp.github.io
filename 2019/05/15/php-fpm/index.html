@@ -96,20 +96,20 @@
 
 
 
-  <meta name="description" content="d 让我们快速了解如何更好的设置 PHP-FPM，以实现高吞吐量和低延迟 默认情况下，大多数设置都将 PHP-FPM 的 PM（进程管理器）设置为 dynamic，并且如果遇到内存不足的问题，还需要使用 ondemand 让我们看一下 php.net 文档中的选项，并介绍我最喜欢的设置 - static：  pm = dynamic: 子进程的数量根据以下配置动态设置 pm.max_childre">
+  <meta name="description" content="让我们快速了解如何更好的设置 PHP-FPM，以实现高吞吐量和低延迟 默认情况下，大多数设置都将 PHP-FPM 的 PM（进程管理器）设置为 dynamic，并且如果遇到内存不足的问题，还需要使用 ondemand 让我们看一下 php.net 文档中的选项，并介绍我最喜欢的设置 - static：  pm = dynamic: 子进程的数量根据以下配置动态设置 pm.max_children,">
 <meta name="keywords" content="php,php-fpm">
 <meta property="og:type" content="article">
 <meta property="og:title" content="PHP-FPM 调优：为了高性能使用 pm static">
 <meta property="og:url" content="https://www.enda.im/2019/05/15/php-fpm/index.html">
 <meta property="og:site_name" content="Enda">
-<meta property="og:description" content="d 让我们快速了解如何更好的设置 PHP-FPM，以实现高吞吐量和低延迟 默认情况下，大多数设置都将 PHP-FPM 的 PM（进程管理器）设置为 dynamic，并且如果遇到内存不足的问题，还需要使用 ondemand 让我们看一下 php.net 文档中的选项，并介绍我最喜欢的设置 - static：  pm = dynamic: 子进程的数量根据以下配置动态设置 pm.max_childre">
+<meta property="og:description" content="让我们快速了解如何更好的设置 PHP-FPM，以实现高吞吐量和低延迟 默认情况下，大多数设置都将 PHP-FPM 的 PM（进程管理器）设置为 dynamic，并且如果遇到内存不足的问题，还需要使用 ondemand 让我们看一下 php.net 文档中的选项，并介绍我最喜欢的设置 - static：  pm = dynamic: 子进程的数量根据以下配置动态设置 pm.max_children,">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://www.phpyc.com/content/images/2018/05/1509365223linux_top_php-fpm-using-static-pm.png">
 <meta property="og:image" content="https://www.phpyc.com//content/images/2018/05/1509365219php-fpm-pm-bench.png">
-<meta property="og:updated_time" content="2019-05-15T12:51:32.504Z">
+<meta property="og:updated_time" content="2019-05-16T04:30:33.582Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="PHP-FPM 调优：为了高性能使用 pm static">
-<meta name="twitter:description" content="d 让我们快速了解如何更好的设置 PHP-FPM，以实现高吞吐量和低延迟 默认情况下，大多数设置都将 PHP-FPM 的 PM（进程管理器）设置为 dynamic，并且如果遇到内存不足的问题，还需要使用 ondemand 让我们看一下 php.net 文档中的选项，并介绍我最喜欢的设置 - static：  pm = dynamic: 子进程的数量根据以下配置动态设置 pm.max_childre">
+<meta name="twitter:description" content="让我们快速了解如何更好的设置 PHP-FPM，以实现高吞吐量和低延迟 默认情况下，大多数设置都将 PHP-FPM 的 PM（进程管理器）设置为 dynamic，并且如果遇到内存不足的问题，还需要使用 ondemand 让我们看一下 php.net 文档中的选项，并介绍我最喜欢的设置 - static：  pm = dynamic: 子进程的数量根据以下配置动态设置 pm.max_children,">
 <meta name="twitter:image" content="https://www.phpyc.com/content/images/2018/05/1509365223linux_top_php-fpm-using-static-pm.png">
 
 
@@ -231,6 +231,23 @@
         
         
           
+          <li class="menu-item menu-item-php">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/php" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>php</a>
+
+  </li>
+        
+        
+        
+          
           <li class="menu-item menu-item-archives">
 
     
@@ -336,12 +353,24 @@
                 
               
 
-              <time title="Created: 2019-05-15 20:37:00 / Modified: 20:51:32" itemprop="dateCreated datePublished" datetime="2019-05-15T20:37:00+08:00">2019-05-15</time>
+              <time title="Created: 2019-05-15 20:37:00" itemprop="dateCreated datePublished" datetime="2019-05-15T20:37:00+08:00">2019-05-15</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Modified: 2019-05-16 12:30:33" itemprop="dateModified" datetime="2019-05-16T12:30:33+08:00">2019-05-16</time>
               
             
           </span>
@@ -375,8 +404,7 @@
       
 
       
-        <p>d</p>
-<p>让我们快速了解如何更好的设置 PHP-FPM，以实现高吞吐量和低延迟</p>
+        <p>让我们快速了解如何更好的设置 PHP-FPM，以实现高吞吐量和低延迟</p>
 <p>默认情况下，大多数设置都将 PHP-FPM 的 PM（进程管理器）设置为 <code>dynamic</code>，并且如果遇到内存不足的问题，还需要使用 <code>ondemand</code></p>
 <p>让我们看一下 php.net 文档中的选项，并介绍我最喜欢的设置 - static：</p>
 <ul>
@@ -542,6 +570,10 @@
                 <div class="site-state-item site-state-tags">
                   
                     
+                      <a href="/tags/">
+                    
+                  
+                    
                     
                       
                     
@@ -549,7 +581,7 @@
                     
                     <span class="site-state-item-count">2</span>
                     <span class="site-state-item-name">tags</span>
-                  
+                  </a>
                 </div>
               
             </nav>
@@ -559,6 +591,21 @@
 
           
 
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/yccphp" title="GitHub &rarr; https://github.com/yccphp" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+            </div>
           
 
           
@@ -606,7 +653,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; 2013 – <span itemprop="copyrightYear">2019</span>
   <span class="with-love" id="animate">
     <i class="fa fa-user"></i>
   </span>
