@@ -405,192 +405,24 @@
       
         
           
-            <p>让我们快速了解如何更好的设置 PHP-FPM，以实现高吞吐量和低延迟</p>
-<p>默认情况下，大多数设置都将 PHP-FPM 的 PM（进程管理器）设置为 <code>dynamic</code>，并且如果遇到内存不足的问题，还需要使用 <code>ondemand</code></p>
-<p>让我们看一下 php.net 文档中的选项，并介绍我最喜欢的设置 - static：</p>
-<ul>
-<li><code>pm = dynamic</code>: 子进程的数量根据以下配置动态设置 <code>pm.max_children, pm.start_servers, pm.min_spare_servers, pm.max_spare_servers</code></li>
-<li><code>pm = ondemand</code>: 进程在请求时按需创建，而不是动态的，其中 <code>pm.start_servers</code> 进程数量在服务启动时创建</li>
-<li><code>pm = static</code>: 子进程的数量由 <code>pm.max_children</code> 决定</li>
-</ul>
-<h2 id="PHP-FPM（PM）与-CPUFreq-的相似之处"><a href="#PHP-FPM（PM）与-CPUFreq-的相似之处" class="headerlink" title="PHP-FPM（PM）与 CPUFreq 的相似之处"></a>PHP-FPM（PM）与 CPUFreq 的相似之处</h2><p>这看起来有点偏离主题，但我希望将其结合到我们的 PHP-FPM 调优主题中</p>
-<p>我们都遇到过 CPU 缓慢的问题，无论是笔记本，虚拟机还是服务器。 </p>
-<p>你还记得 CPU 调频吗？（CPUFreq），它可以在 linux 和 Windows 上使用，可以将 CPU 频率设置为 <code>ondemand</code> 来提高性能和系统响应能力。</p>
-<p>现在，我们来比较一下这些描述并寻找相似之处：</p>
-<ul>
-<li><code>Governor = ondemand</code>: 按需快速动态调整 CPU 频率， 一有 cpu 计算量的任务，就会立即达到最大频率运行，空闲时间增加就降低频率</li>
-<li><code>Governor = conservative</code>: 按需快速动态调整 CPU 频率， 比 ondemand 的调整更保守</li>
-<li><code>Governor = performance</code>: 总是运行于最大频率</li>
-</ul>
-<p><em>有关更多详细信息，请参阅 CPUFreq 调控器选项的完整列表</em></p>
-<p>有没有注意相似之处呢 ？</p>
-<h2 id="使用-pm-static-来实现最高性能"><a href="#使用-pm-static-来实现最高性能" class="headerlink" title="使用 pm static 来实现最高性能"></a>使用 <code>pm static</code> 来实现最高性能</h2><p><code>pm static</code> 设置在很大程度上取决于您的服务器有多少空闲内存。<br>基本上，如果你的服务器内存很低，那么 <code>pm ondemand</code> 或 <code>dynamic</code> 可能是更好的选择。<br>如果您拥有足够的内存，则可以设置 <code>pm static</code> 来避免大部分 PM 开销。<br>换句话说，当您进行数学运算时，应将 <code>pm.static</code> 设置为服务器可运行的最大数量的进程数，它就不会有内存不足或缓存压力的问题</p>
-<p><img src="https://www.phpyc.com/content/images/2018/05/1509365223linux_top_php-fpm-using-static-pm.png" alt="1509365223linux_top_php-fpm-using-static-pm"></p>
-<p>在上面的截图中，PHP-FPM 的配置为 <code>pm = static</code> 和 <code>pm.max_children = 100</code><br>它有 32GB的内存，在截图期间，Google Analytics 中约有 200 个 “活跃用户”（过去 60 秒）。<br>在这个级别上，约有 <code>70％</code> 的 PHP-FPM 进程仍然闲置。<br>这意味着 PHP-FPM 设置为服务器资源的最大容量后，它不会去在意当前流量，空闲进程会保持联机状态，等待流量高峰立即响应，而不必等到请求来了之后再创建进程</p>
-<p>我将 <code>pm.max_requests</code> 设置的非常高，因为这是一个没有 PHP 内存泄漏的生产服务器。<br>如果您对当前和将来的 PHP 代码有 110％ 的信心，可以将 <code>pm.max_requests = 0</code> 与 <code>pm static</code> 一起使用</p>
-<h2 id="何时使用-ondemand-和-dynamic"><a href="#何时使用-ondemand-和-dynamic" class="headerlink" title="何时使用 ondemand 和 dynamic"></a>何时使用 ondemand 和 dynamic</h2><p>使用 <code>pm dynamic</code>，您可能会出现类似于下面的错误：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">WARNING: [pool xxxx] seems busy (you may need to increase pm.start_servers, or pm.min/max_spare_servers), spawning 32 children, there are 4 idle, and 59 total children</span><br></pre></td></tr></table></figure></p>
-<p>您可能会尝试调整 pm 配置，但仍然会看到同样的错误<br>在这种情况下，<code>pm.min</code> 太低，并且因为流量和峰值波动很大，使用 <code>pm dynamic</code> 可能难以调整</p>
-<p>一般的建议是使用 <code>pm ondemand</code>。 然而，情况会变的更糟，因为 <code>ondemand</code> 会在没有流量时关闭空闲进程，然后最终会产生与流量波动很大一样的开销问题 (除非您设置空闲超时的时间非常非常的长）</p>
-<p>但是，当您拥有多个 pm 进程池时，<code>pm dynamic</code>， 特别是 <code>ondemand</code> 是可以为您节省时间的</p>
-<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>当流量波动比较大的时候，，PHP-FPM 的 <code>ondemand</code> 和 <code>dynamic</code> 会因为固有开销而限制吞吐量。 您需要了解您的系统并设置 PHP-FPM 进程数，以匹配服务器的最大容量。<br>从 <code>pm.max_children</code> 开始，根据 <code>pm dynamic</code> 或 <code>ondemand</code> 的最大使用情况去设置</p>
-<p>您会注意到，在 <code>pm static</code> 模式下，因为您将所有内容都保存在内存中，所以随着时间的推移，流量峰值会对 CPU 造成比较小的峰值，并且您的服务器负载和 CPU 平均值将变得更加平滑。 每个需要手动调整的 PHP-FPM 进程数的平均大小会有所不同</p>
-<p>附上一张 A/B 测试图<br><img src="https://www.phpyc.com//content/images/2018/05/1509365219php-fpm-pm-bench.png" alt="1509365219php-fpm-pm-bench"></p>
-<p>最后希望这是一篇有用的文章 😁</p>
-<blockquote>
-<p>本文由 Enda 翻译至 <a href="https://www.sitepoint.com/php-fpm-tuning-using-pm-static-max-performance/" target="_blank" rel="noopener">PHP-FPM tuning: Using ‘pm static’ for Max Performance</a><br>其中有一些自己的看法在里面，如果有错误欢迎纠正~ 谢谢</p>
-</blockquote>
-<blockquote>
-<p>欢迎关注我的博客和专栏，不定期更新好文章<br>博客地址：<a href="https://www.phpyc.com/" target="_blank" rel="noopener">https://www.phpyc.com/</a></p>
-</blockquote>
+            <p>
+              让我们快速了解如何更好的设置 PHP-FPM，以实现高吞吐量和低延迟
+默认情况下，大多数设置都将 PHP-FPM 的 PM（进程管理器）设置为 dynamic，并且如果遇到内存不足的问题，还需要使用 ondemand
+让我们看一下 php.net 文档中的选项，并介绍我最喜欢的设置 - static：
 
+pm = dynamic: 子进程的数量根据以下配置动态设置 pm.max_children, pm.start_servers, pm.min_spare_servers, pm.max_spare_servers
+pm = ondemand: 进程在请求时按需创建，而不是动态的，其中 pm
+              ...
+            </p>
+          <!--noindex-->
           
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://www.enda.im/2018/12/25/hello-world/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Enda">
-      <meta itemprop="description" content="由非著名中国程序员Enda分享他的职业经验以及工作中踩过的深坑">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Enda">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2018/12/25/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-
-              
-                
-              
-
-              <time title="Created: 2018-12-25 16:02:41" itemprop="dateCreated datePublished" datetime="2018-12-25T16:02:41+08:00">2018-12-25</time>
-            
-
-            
-          </span>
-
+            <div class="post-button text-center">
+              <a class="btn" href="/2019/05/15/php-fpm/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
           
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-
-          
+          <!--/noindex-->
         
       
     </div>
@@ -672,7 +504,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-count">1</span>
                     <span class="site-state-item-name">posts</span>
                   </a>
                 </div>
